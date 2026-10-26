@@ -1,0 +1,196 @@
+{
+  "name": "AI Powered Motivational Quote",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 6
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -416,
+        -48
+      ],
+      "id": "3737d6ad-eae5-4da0-bd67-90e1632702d3",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "models/gemini-3-flash-preview"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "Generate one unique, inspiring, and professional motivational quote suitable for a general audience."
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        32,
+        -48
+      ],
+      "id": "256ccccc-5958-4d8e-b53d-1afeea16cdd1",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "CmZMvkHys7sB1b3h",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1sR9dcuMuGO29l10pJj7oo8G9XMCO2qIqHHUN2MLJj_w",
+          "mode": "list",
+          "cachedResultName": "Daily Quotes",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sR9dcuMuGO29l10pJj7oo8G9XMCO2qIqHHUN2MLJj_w/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sR9dcuMuGO29l10pJj7oo8G9XMCO2qIqHHUN2MLJj_w/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": []
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -192,
+        48
+      ],
+      "id": "a11d42ce-147c-43ed-8d4e-c0e33972f072",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "uwIxAqOpCMYni4k6",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "apiKey",
+        "from": "quotes@odogwu.site",
+        "to": "={{ $('Get row(s) in sheet').item.json.Email }}",
+        "subject": "Your Daily Dose of Motivation!",
+        "html": "=<p>Heyy, {{ $('Get row(s) in sheet').item.json.Name }}!!</p>\n\n<p><em>{{ $json.content.parts[0].text }}</em></p>\n\n<br>\n<p>Best Regards,<br>Odogwu Automation Studio.</p>",
+        "additionalOptions": {}
+      },
+      "type": "n8n-nodes-resend.resend",
+      "typeVersion": 2,
+      "position": [
+        32,
+        -320
+      ],
+      "id": "f6118aef-1901-405c-944a-dfe835634e88",
+      "name": "Send a new email",
+      "webhookId": "55400f7e-8beb-4cf3-9c7b-c555b726d2ad",
+      "credentials": {
+        "resendApi": {
+          "id": "bgOANoEAHF3Qq4bC",
+          "name": "Resend account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Get row(s) in sheet').item.json.Email }}",
+        "subject": "Your Daily Dose of Motivation ⚡",
+        "message": "=<p>Heyy, {{ $('Get row(s) in sheet').item.json.Name }}!!</p>  <p><em>{{ $json.content.parts[0].text }}</em></p>  <br> <p>Best Regards,<br>Odogwu Automation Studio.</p>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        400,
+        -48
+      ],
+      "id": "0d2186d4-65c1-428e-bf21-487838913ea9",
+      "name": "Send a message",
+      "webhookId": "4fb4c766-daab-450a-a202-e2eabbdc027a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "zqlDcx2e8tRbzuCh",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "timezone": "Africa/Lagos",
+    "callerPolicy": "workflowsFromSameOwner",
+    "executionTimeout": -1,
+    "availableInMCP": false
+  },
+  "versionId": "cc0e2bca-25d4-4af3-911c-aba9c03651f3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "13ff3582439a99c8dc80561afe729fccd8e5ecb467e032acc521d2dc3b6fc2df"
+  },
+  "nodeGroups": [],
+  "id": "6dXDPYOMcmo58Kqz",
+  "tags": []
+}
